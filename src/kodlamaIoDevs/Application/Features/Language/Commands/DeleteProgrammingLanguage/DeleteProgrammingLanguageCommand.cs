@@ -1,0 +1,45 @@
+﻿using Application.Features.Language.Rules;
+using Application.Services.Repositories;
+using AutoMapper;
+using Domain.Entities;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Application.Features.Language.Dtos;
+
+namespace Application.Features.Language.Commands.DeleteProgrammingLanguage
+{
+    public class DeleteProgrammingLanguageCommand : IRequest<DeletedProgrammingLanguageDto>
+    {
+        public int Id { get; set; }
+
+        public class DeleteProgrammingLanguageCommandHandler : IRequestHandler<DeleteProgrammingLanguageCommand, DeletedProgrammingLanguageDto>
+        {
+            private readonly IProgrammingLanguageRepository _programmingLanguageRepository;
+            private readonly IMapper _mapper;
+            private readonly ProgrammingLanguageBusinessRules _programmingLanguageBusinessRules;
+            public DeleteProgrammingLanguageCommandHandler(IProgrammingLanguageRepository programmingLanguageRepository, IMapper mapper, ProgrammingLanguageBusinessRules programmingLanguageBusinessRules)
+            {
+                _programmingLanguageRepository = programmingLanguageRepository;
+                _mapper = mapper;
+                _programmingLanguageBusinessRules = programmingLanguageBusinessRules;
+            }
+
+            public async Task<DeletedProgrammingLanguageDto> Handle(DeleteProgrammingLanguageCommand request, CancellationToken cancellationToken)
+            {
+                var programmingLanguage = await _programmingLanguageRepository.GetAsync(p => p.Id == request.Id);
+
+                _programmingLanguageBusinessRules.ProgrammingLanguageShouldExistWhenRequested(programmingLanguage);
+
+                ProgrammingLanguage deletedProgrammingLanguage = await _programmingLanguageRepository.DeleteAsync(programmingLanguage);
+                DeletedProgrammingLanguageDto mappedDeletedProgrammingLanguageDto = _mapper.Map<DeletedProgrammingLanguageDto>(deletedProgrammingLanguage);
+                return mappedDeletedProgrammingLanguageDto;
+
+
+            }
+        }
+    }
+}
